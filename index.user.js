@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Mastodon Translate
 // @namespace    https://jabberwocky.moe/@alice
-// @version      1.22.0
-// @description  Provides a translate toot option for Mastodon users via GoogleTranslate. Works with Mastodon 3.2.1
+// @version      1.23.0
+// @description  Provides a translate toot option for Mastodon users via Google Translate. Works with Mastodon 3.2.1
 // @author       tomo@uchuu.io / https://niu.moe/@tomo / umonaca / alice@jabberwocky.moe
 // @match        https://*/web/*
 // @match        https://*/settings/preferences/appearance
@@ -21,7 +21,7 @@
     // Set Defaults if not set
     if(!localStorage.getItem('lang')) {
         localStorage.setItem('lang', GM_getValue('lang', 'en'));
-    }
+    };
 
     function stripMentions(text) {
         var regex = /(@[a-z0-9]+)/;
@@ -35,7 +35,7 @@
         return {
             mentions,
             text: cleanText
-        }
+        };
     }
 
     function getTranslation(status, language) {
@@ -62,7 +62,7 @@
                 document.querySelector('li.translate__toot').remove();
                 if (document.querySelector('div.dropdown-menu') !== null) {
                     status.querySelector('i.fa.fa-ellipsis-h').click();
-                }
+                };
             },
             onabort: function() {
                 console.log('There was an abort');
@@ -88,7 +88,18 @@
             var link = document.createElement('a');
             link.setAttribute('href', '#');
             link.setAttribute('target', '_blank');
-            link.textContent = 'Translate Toot';
+            
+            var target_lang = localStorage.getItem('lang');
+            if (target_lang == 'zh-CN') {
+                link.textContent = '翻译嘟文';
+            } else if (target_lang == 'zh-HK') {
+                link.textContent = '翻譯嘟文';
+            } else if (target_lang == 'zh-TW') {
+                link.textContent = '翻譯嘟文';
+            } else {
+                link.textContent = 'Translate Toot';
+            };
+
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 if (status.querySelectorAll('p.toot__translation').length === 0) {
@@ -108,7 +119,12 @@
 
             var input = document.getElementById('translation_locale');
             var selectedLanguage = input.options[input.selectedIndex].value;
-            localStorage.setItem('lang', selectedLanguage);
+
+            if (selectedLanguage == 'zh-HK') {
+                localStorage.setItem('lang', 'zh-TW');
+            } else {
+                localStorage.setItem('lang', selectedLanguage);
+            };
 
             setTimeout(function() {
                 document.querySelector('body').removeEventListener('click', saveSettings, false);
@@ -135,12 +151,11 @@
 
     function activateMastodonTranslate() {
         document.querySelector('body').addEventListener('click', function(event) {
-            console.log(event.target.tagName);
             if (chromeClickChecker(event) || firefoxClickChecker(event)) {
                 // Get the status for this event
                 var status = event.target.parentNode.parentNode.parentNode.parentNode.parentNode;
                 addTranslateLink(status);
-            }
+            };
         }, false);
     }
 
@@ -173,9 +188,19 @@
         languageArea.classList.remove('fields-row__column');
         languageArea.classList.remove('fields-row__column-6');
 
+        var interface_lang = languageArea.querySelector("select[name='user[locale]']").value;
+
         var label = languageArea.querySelector(".select .optional[for=user_locale]");
         label.setAttribute('for', 'translation_locale');
-        label.textContent = 'Translation Language';
+        if (interface_lang == 'zh-CN') {
+            label.textContent = '使用以下语言翻译';
+        } else if (interface_lang == 'zh-HK') {
+            label.textContent = '使用以下語言翻譯';
+        } else if (interface_lang == 'zh-TW') {
+            label.textContent = '使用以下語言翻譯';
+        } else {
+            label.textContent = 'Translation Language';
+        };
 
         var selector = languageArea.querySelector("select[name='user[locale]']");
         selector.setAttribute('id', 'translation_locale');
