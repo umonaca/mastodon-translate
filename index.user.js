@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         MastodonTranslate
+// @name         Mastodon Translate
 // @namespace    https://jabberwocky.moe/@alice
-// @version      1.21.0
+// @version      1.22.0
 // @description  Provides a translate toot option for Mastodon users via GoogleTranslate. Works with Mastodon 3.2.1
 // @author       tomo@uchuu.io / https://niu.moe/@tomo / umonaca / alice@jabberwocky.moe
 // @match        https://*/web/*
@@ -19,9 +19,6 @@
     'use strict';
 
     // Set Defaults if not set
-    if(!localStorage.getItem('toggle')) {
-        localStorage.setItem('toggle', GM_getValue('toggle', 'true'));
-    }
     if(!localStorage.getItem('lang')) {
         localStorage.setItem('lang', GM_getValue('lang', 'en'));
     }
@@ -94,12 +91,10 @@
             link.textContent = 'Translate Toot';
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                if (localStorage.getItem('toggle') == 'true' && status.querySelectorAll('p.toot__translation').length === 0) {
+                if (status.querySelectorAll('p.toot__translation').length === 0) {
                     link.textContent = 'Loading...';
                     getTranslation(status, localStorage.getItem('lang'));
-                } else if (localStorage.getItem('toggle') == 'false') {
-                    window.location.href = window.location.origin + '/settings/preferences#translation_notice';
-                }
+                }; 
             }, false);
 
             listItem.appendChild(link);
@@ -110,9 +105,6 @@
     function saveSettings(event) {
         if (event.target.tagName.toLowerCase() === 'button' && event.target.getAttribute('type') === 'submit') {
             event.preventDefault();
-            var toggle = document.getElementById('user_translation_enabled');
-            var selectedToggle = toggle.checked;
-            localStorage.setItem('toggle', selectedToggle);
 
             var input = document.getElementById('translation_locale');
             var selectedLanguage = input.options[input.selectedIndex].value;
@@ -177,27 +169,6 @@
         var settingsGroup = form.querySelectorAll('div.fields-group')[2].cloneNode(true);
         settingsGroup.children[0].remove();
 
-        var notice = document.createElement('div');
-        var noticeMsg = 'Translation is currently provided by Google Translate, if you\'re not happy with this please don\'t check the checkbox below or just uninstall the script.';
-        noticeMsg += '<br>If you have an issue please give me a buzz <a href="https://jabberwocky.moe/@alice">@alice@jabberwocky.moe</a> via mastodon or raise an issue on <a href="https://github.com/umonaca/mastodon-translate/issues">Github</a>';
-        notice.setAttribute('id', 'translation_notice');
-        notice.classList.add('input');
-        notice.classList.add('with_block_label');
-        notice.classList.add('check_boxes');
-        notice.classList.add('field_with_hint');
-        notice.innerHTML = '<label class="check_boxes optional">Translation Script</label><span class="hint">'+noticeMsg+'</span>';
-
-        var toggleArea = document.createElement('ul');
-        toggleArea.style.cssText = "-webkit-columns: 1; columns: 1;";
-        var toggleInput = document.createElement('li');
-        toggleInput.classList.add('checkbox');
-        toggleInput.innerHTML = '<label for="user_translation_enabled"><input class="check_boxes optional" type="checkbox" value="1" name="user[translation_enabled]" id="user_translation_enabled">I\'m happy to use Google Translate</label>';
-        var checkbox = toggleInput.querySelector('input#user_translation_enabled');
-        checkbox.checked = (localStorage.getItem('toggle') == 'true');
-        toggleArea.appendChild(toggleInput);
-
-        notice.appendChild(toggleArea);
-
         var languageArea = form.querySelector('div.fields-group').cloneNode(true);
         languageArea.classList.remove('fields-row__column');
         languageArea.classList.remove('fields-row__column-6');
@@ -210,7 +181,6 @@
         selector.setAttribute('id', 'translation_locale');
         selector.value = localStorage.getItem('lang');
 
-        settingsGroup.appendChild(notice);
         settingsGroup.appendChild(languageArea);
 
         form.insertBefore(settingsGroup, form.firstChild);
